@@ -2,6 +2,7 @@
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { StorageProvider } from './contexts/StorageContext';
 import { LoginPage } from './pages/LoginPage';
 import { RunListPage } from './pages/RunListPage';
 import { RunDetailPage } from './pages/RunDetailPage';
@@ -10,6 +11,8 @@ import { OperationListPage } from './pages/OperationListPage';
 import NotFound from './pages/NotFound';
 import InternalServerError from './pages/InternalServerError';
 import Forbidden from './pages/Forbidden';
+import { FEATURES } from './config/features';
+import { AdminRoutes } from './pages/admin';
 
 // Redirect components for backward compatibility
 const RedirectToNewProcessesRoute = () => {
@@ -27,6 +30,7 @@ function App() {
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <BrowserRouter>
         <AuthProvider>
+          <StorageProvider>
           <Routes>
             <Route path="/" element={<LoginPage />} />
             {/* Main routes - RESTful design */}
@@ -34,6 +38,10 @@ function App() {
             <Route path="/runs/:id" element={<RunDetailPage />} />
             <Route path="/runs/:runId/processes" element={<ProcessViewPage />} />
             <Route path="/operations" element={<OperationListPage />} />
+            {/* Admin routes - conditionally rendered based on feature flag */}
+            {FEATURES.ADMIN_PANEL && (
+              <Route path="/admin/*" element={<AdminRoutes />} />
+            )}
             {/* Redirect old URL patterns for backward compatibility */}
             <Route path="/protocol_list" element={<RedirectToRuns />} />
             <Route path="/protocol_list/:id" element={<RedirectToRuns />} />
@@ -44,6 +52,7 @@ function App() {
             <Route path="/internal_server_error" element={<InternalServerError />} />
             <Route path="*" element={<Navigate to="/not_found" replace />} />
           </Routes>
+          </StorageProvider>
         </AuthProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
